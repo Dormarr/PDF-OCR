@@ -21,6 +21,7 @@ using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using iText.Kernel.Pdf.Canvas.Parser;
 using System.Windows.Media.Animation;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace PDF_OCR
 {
@@ -62,30 +63,29 @@ namespace PDF_OCR
             foreach (string filePath in filePaths)
             {
                 SplitAndRead(filePath);
+                Debug.WriteLine(filePath);
             }
         }
 
         private void SplitAndRead(string filePath)
         {
-            using(var pdfReader = new PdfReader(filePath))
+
+            var pdfReader = new PdfReader(filePath);
+            var pdfDoc = new PdfDocument(pdfReader);
+
+            Debug.WriteLine("Check 1");
+            for(int i = 1; i < pdfDoc.GetNumberOfPages(); i++)
             {
-                var pdfDoc = new PdfDocument(pdfReader);
-
-                for(int i = 1; i < pdfDoc.GetNumberOfPages(); i++)
-                {
-                    //Convert the page.
-                    //string extractedText = ReadImage(filePath);
+                //Convert the page.
                     
-                    string extractedText = ExtractTextFromPage(pdfDoc, i);
-                    extractedText = ExtractNameFromText(extractedText);
-                    PdfDocument pageOut = new PdfDocument(pdfReader);
-                    //pdfDoc.CopyPagesTo(1, 1, pageOut, 0);
-                    pdfDoc.GetPage(i).CopyTo(pageOut);
-                    SaveAsNew(pageOut, $"{outputFolder}/{extractedText}", i);
+                //PdfDocument pageOut = new PdfDocument(pdfReader);
+                //pdfDoc.GetPage(i).CopyTo(pageOut);
+                //string extractedText = ExtractTextFromPage(pdfDoc, i);
 
-                    
-                }
-
+                string extractedText = ReadImage(filePath);
+                extractedText = ExtractNameFromText(extractedText);
+                Debug.WriteLine(extractedText);
+                SaveAsNew(pdfDoc, $"{outputFolder}/{extractedText}", i);
             }
         }
 
@@ -108,8 +108,11 @@ namespace PDF_OCR
             var ocrEngine = new TesseractEngine("C:\\Program Files\\Tesseract-OCR\\tessdata", "eng", EngineMode.Default);
             var image = Pix.LoadFromFile(filePath);
 
+            Debug.WriteLine("Check 2");
+
             using (var page = ocrEngine.Process(image))
             {
+
                 return ExtractNameFromText(page.GetText());
             }
         }
@@ -135,25 +138,12 @@ namespace PDF_OCR
 
         private string ExtractNameFromText(string text)
         {
-            // Look for the "Full Name: " phrase in the text
-            int fullNameIndex = text.IndexOf($"{startTextIndex}");
-            if (fullNameIndex != -1)
+            var match = Regex.Match(text, @"Full Name: (.+?)Title:", RegexOptions.Singleline);
+
+            if (match.Success)
             {
-                // Find the substring between "Full Name: " and "Title: "
-                int startIndex = fullNameIndex + $"{startTextIndex}".Length;
-                int endIndex = text.IndexOf($"{endTextIndex}", startIndex);
-
-                if (endIndex != -1)
-                {
-                    // Extract the substring containing the name
-                    string nameSubstring = text.Substring(startIndex, endIndex - startIndex).Trim();
-
-                    // Additional cleanup or processing if needed
-                    // You might want to remove leading/trailing spaces or perform more specific extraction logic
-                    renamePreview.Text = nameSubstring;
-                    Debug.WriteLine(nameSubstring);
-                    return nameSubstring;
-                }
+                Debug.WriteLine(match.Groups[1].Value);
+                return match.Groups[1].Value.Trim();
             }
 
             return $"Name not found {DateTime.UtcNow.Ticks}";
