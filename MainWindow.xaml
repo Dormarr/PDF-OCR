@@ -42,12 +42,13 @@
         </Style>
     </Window.Resources>
     <Grid Background="#FF171717">
-        <Button Content="Set Input Folder" Style="{StaticResource BasicButton}" Foreground="#FFF5EFE8" HorizontalAlignment="Center" Margin="0,60,0,0" VerticalAlignment="Top" Width="170" Click="InputFolder_Click" Height="22"/>
-        <Button Content="Set Output Folder" Style="{StaticResource BasicButton}" Foreground="#FFF5EFE8" HorizontalAlignment="Center" Margin="0,97,0,0" VerticalAlignment="Top" Width="170" Click="OutputFolder_Click" Height="22"/>
-        <Button Content="Rename" Style="{StaticResource BasicButton}" Foreground="#FFF5EFE8" HorizontalAlignment="Center" VerticalAlignment="Top" Width="170" Click="Rename_Click" Margin="0,335,0,0" Height="28"/>
-        <TextBox x:Name="startTextIndex" FontFamily="Strawford"  HorizontalAlignment="Center" Margin="0,135,0,0" TextWrapping="Wrap" Text="Start Text Flag" VerticalAlignment="Top" Width="170" Height="52" BorderBrush="#FFE4DCD1" Background="{x:Null}" Foreground="#FFE4DCD1"/>
-        <TextBox x:Name="endTextIndex" FontFamily="Strawford"  HorizontalAlignment="Center" TextWrapping="Wrap" Text="End Text Flag" VerticalAlignment="Top" Width="170" Height="52" Margin="0,265,0,0" Background="{x:Null}" BorderBrush="#FFE4DCD1" Foreground="#FFE4DCD1"/>
-        <TextBlock x:Name="renamePreview" FontFamily="Strawford" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top" Width="170" Foreground="#FFE4DCD1" Height="48" Margin="0,204,0,0"/>
+        <Button Content="Set Input Folder" Style="{StaticResource BasicButton}" Foreground="#FFF5EFE8" HorizontalAlignment="Center" Margin="0,77,0,0" VerticalAlignment="Top" Width="170" Click="InputFolder_Click" Height="22"/>
+        <Button Content="Set Output Folder" Style="{StaticResource BasicButton}" Foreground="#FFF5EFE8" HorizontalAlignment="Center" Margin="0,114,0,0" VerticalAlignment="Top" Width="170" Click="OutputFolder_Click" Height="22"/>
+        <Button Content="Rename" Style="{StaticResource BasicButton}" Foreground="#FFF5EFE8" HorizontalAlignment="Center" VerticalAlignment="Top" Width="170" Click="Rename_Click" Margin="0,320,0,0" Height="28"/>
+        <TextBox x:Name="startTextIndex" FontFamily="Strawford"  HorizontalAlignment="Center" Margin="0,152,0,0" TextWrapping="Wrap" Text="Start Text Flag" VerticalAlignment="Top" Width="170" Height="40" BorderBrush="#FFE4DCD1" Background="{x:Null}" Foreground="#FFE4DCD1"/>
+        <TextBox x:Name="endTextIndex" FontFamily="Strawford"  HorizontalAlignment="Center" TextWrapping="Wrap" Text="End Text Flag" VerticalAlignment="Top" Width="170" Height="40" Margin="0,267,0,0" Background="{x:Null}" BorderBrush="#FFE4DCD1" Foreground="#FFE4DCD1"/>
+        <TextBlock x:Name="renamePreview" FontFamily="Strawford" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top" Width="170" Foreground="#FFE4DCD1" Height="48" Margin="0,206,0,0"/>
         <TextBlock FontFamily="Strawford" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Bottom" Height="21" Width="170" Foreground="#FF2D2D2D" TextAlignment="Center" FontSize="8" Margin="0,0,0,10"><Run Text="PDF_OCR_Rename V0.2.1"/><LineBreak/><Run Text="©Ryan Appleyard 2024"/></TextBlock>
+        <Image Height="46" VerticalAlignment="Top" Width="230" Source="/Assets/Renamer Logo.png" Margin="10,14,10,0"/>
     </Grid>
 </Window>
