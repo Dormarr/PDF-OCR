@@ -70,6 +70,7 @@ namespace PDF_OCR
                     SaveAsNew(pdfDoc, $"{outputFolder}/{sanitisedText}.pdf", 1);
                     //File.Move(filePath, $"{outputFolder}/{sanitisedText}.pdf");
                     Debug.WriteLine("Process Complete. File moved and renamed.");
+                    renamePreview.Text = "Complete";
                 }
             }
             catch(Exception e)
@@ -157,6 +158,7 @@ namespace PDF_OCR
             {
                 Debug.WriteLine($"Match Value: {match.Groups[1].Value}");
 
+                renamePreview.Text = match.Groups[1].Value;
                 return match.Groups[1].Value.Trim();
             }
 
