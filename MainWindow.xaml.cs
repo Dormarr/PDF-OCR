@@ -1,27 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Forms;
 using iText.Kernel.Pdf;
-using iText.Kernel.Utils;
 using Tesseract;
 using System.IO;
-using iText.Kernel.Pdf.Canvas.Parser.Listener;
-using iText.Kernel.Pdf.Canvas.Parser;
-using System.Windows.Media.Animation;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+
+
 
 namespace PDF_OCR
 {
@@ -69,24 +55,38 @@ namespace PDF_OCR
 
         private void SplitAndRead(string filePath)
         {
-
-            var pdfReader = new PdfReader(filePath);
-            var pdfDoc = new PdfDocument(pdfReader);
-
-            Debug.WriteLine("Check 1");
-            for(int i = 1; i < pdfDoc.GetNumberOfPages(); i++)
+            Debug.WriteLine(Environment.NewLine + "Check 1: Init");
+            try
             {
-                //Convert the page.
-                    
-                //PdfDocument pageOut = new PdfDocument(pdfReader);
-                //pdfDoc.GetPage(i).CopyTo(pageOut);
-                //string extractedText = ExtractTextFromPage(pdfDoc, i);
-
-                string extractedText = ReadImage(filePath);
-                extractedText = ExtractNameFromText(extractedText);
-                Debug.WriteLine(extractedText);
-                SaveAsNew(pdfDoc, $"{outputFolder}/{extractedText}", i);
+                using (PdfDocument pdfDoc = new PdfDocument(new PdfReader(filePath)))
+                {
+                    //string extractedText = ExtractTextFromPage(pdfDoc, 1);
+                    string pngPath = PDFtoPNG(filePath);
+                    string extractedText = ReadImage(pngPath);
+                    Debug.WriteLine($"Check 3: PNG Processed.");
+                    string sanitisedText = SanitiseFileName(extractedText);
+                    Debug.WriteLine($"Extracted: {extractedText}  Sanitised: {sanitisedText}");
+                    File.Delete(pngPath);
+                    SaveAsNew(pdfDoc, $"{outputFolder}/{sanitisedText}.pdf", 1);
+                    //File.Move(filePath, $"{outputFolder}/{sanitisedText}.pdf");
+                    Debug.WriteLine("Process Complete. File moved and renamed.");
+                }
             }
+            catch(Exception e)
+            {
+                Debug.WriteLine($"Unable to read or extract. {e.Message}");
+            }
+        }
+
+        private string SanitiseFileName(string input)
+        {
+            input = input.Replace(".", "");
+
+            foreach(char c in Path.GetInvalidFileNameChars())
+            {
+                input = input.Replace(c, '_');
+            }
+            return input;
         }
 
         private void SaveAsNew(PdfDocument page, string outputFile, int pageIndex)
@@ -98,51 +98,65 @@ namespace PDF_OCR
                     using(var outputDoc = new PdfDocument(pdfWriter))
                     {
                         outputDoc.AddPage(page.GetPage(pageIndex).CopyTo(outputDoc));
+                        Debug.WriteLine($"Saved as new {outputFile}");
                     }
                 }
             }
         }
 
+        private string PDFtoPNG(string filePath)
+        {
+            //Turn pdf page into png in temp file.
+            Debug.WriteLine("Beginning PNG Generation.");
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(filePath);
+            Debug.WriteLine($"File Name: {fileName}");
+
+            using (Process process = new Process())
+            {
+                process.StartInfo.FileName = "magick";
+                process.StartInfo.Arguments = $"convert -density 300 \"{filePath}\" -quality 100 \"{outputFolder}\\{fileName}.png";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
+                process.StartInfo.CreateNoWindow = true;
+
+                process.Start();
+                process.WaitForExit();
+
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+
+                if (!string.IsNullOrEmpty(error))
+                {
+                    Debug.WriteLine($"Failed to make PNG: {error}");
+                }
+
+                return $"{outputFolder}\\{fileName}.png";
+            }
+        }
+
         private string ReadImage(string filePath)
         {
-            var ocrEngine = new TesseractEngine("C:\\Program Files\\Tesseract-OCR\\tessdata", "eng", EngineMode.Default);
+            Debug.WriteLine("Check 2: Reading Image");
+            var ocrEngine = new TesseractEngine("C:\\Program Files\\Tesseract-OCR\\tessdata", "eng", EngineMode.TesseractAndLstm);
             var image = Pix.LoadFromFile(filePath);
-
-            Debug.WriteLine("Check 2");
 
             using (var page = ocrEngine.Process(image))
             {
-
+                Debug.WriteLine("Processing through Tesseract");
                 return ExtractNameFromText(page.GetText());
             }
         }
 
-        private string ExtractTextFromPage(PdfDocument pdfDoc, int pageIndex)
-        {
-            using (var stream = new MemoryStream())
-            {
-                using(var textWriter  = new StringWriter())
-                {
-                    var page = pdfDoc.GetPage(pageIndex);
-
-                    var textExtractor = new LocationTextExtractionStrategy();
-                    var parser = new PdfCanvasProcessor(textExtractor);
-
-                    parser.ProcessPageContent(page);
-                    textWriter.Write(textExtractor.GetResultantText());
-                }
-                return stream.ToString();
-            }
-
-        }
-
         private string ExtractNameFromText(string text)
         {
-            var match = Regex.Match(text, @"Full Name: (.+?)Title:", RegexOptions.Singleline);
+            string regexPattern = $@"{startTextIndex.Text}(.+?){endTextIndex.Text}";
+            var match = Regex.Match(text, regexPattern, RegexOptions.Singleline);
 
             if (match.Success)
             {
-                Debug.WriteLine(match.Groups[1].Value);
+                Debug.WriteLine($"Match Value: {match.Groups[1].Value}");
+
                 return match.Groups[1].Value.Trim();
             }
 
